@@ -19,7 +19,7 @@ const PEOPLE=[
   {id:"personne2",name:"Lucia",color:"#2f6fed"},
   {id:"personne3",name:"Edouard & Pina",color:"#16a34a"},
   {id:"personne4",name:"Rose",color:"#c026d3"},
-  {id:"personne5",name:"Mario & Pina",color:"#d97706"},
+  {id:"personne5",name:"Mario & Pina: 10h30-12h",color:"#d97706"},
   {id:"personne6",name:"Claude & Jeanou",color:"#0891b2"},
   {id:"personne7",name:"Dominique",color:"#78350f"},
   {id:"personne8",name:"Jean-Claude",color:"#475569"},
@@ -30,7 +30,7 @@ const PEOPLE=[
 ];
 /* ================================================================================ */
 
-let fb=null,online=false,visits=[],view=new Date(),sel=null;
+let fb=null,uid=null,myName="",online=false,visits=[],view=new Date(),sel=null;
 view=new Date(view.getFullYear(),view.getMonth(),1);
 const $=id=>document.getElementById(id);
 const pad=n=>String(n).padStart(2,"0");
@@ -74,8 +74,11 @@ function renderSheet(){
   $("sdate").textContent=new Date(y,m-1,d).toLocaleDateString("fr-BE",{weekday:"long",day:"numeric",month:"long"});
   const box=$("pbs");box.replaceChildren();
   PEOPLE.forEach(p=>{
-    const on=has(sel,p.id),b=el("button","pb"+(on?" on":""),(on?"✓ ":"")+p.name);
+    const on=has(sel,p.id),other=on&&online&&!visits.some(v=>v.date===sel&&v.personId===p.id&&v.uid===uid);
+    const who=visits.filter(v=>v.date===sel&&v.personId===p.id).map(v=>v.by).filter(Boolean).join(", ");
+    const b=el("button","pb"+(on?" on":""),(on?"✓ ":"")+p.name+(on&&who?" · "+who:"")+(other&&!who?" (coché par un autre)":""));
     b.style.borderColor=p.color;if(on)b.style.background=p.color;
+    if(other){b.disabled=true;b.style.opacity=".6"}
     b.setAttribute("aria-pressed",on);
     b.onclick=()=>toggle(sel,p.id);
     box.append(b);
@@ -88,11 +91,21 @@ async function toggle(k,pid){
   const found=visits.filter(v=>v.date===k&&v.personId===pid);
   try{
     if(online){
-      if(found.length)await Promise.all(found.map(v=>fb.deleteDoc(fb.doc(fb.db,"visits",v.id))));
-      else await fb.setDoc(fb.doc(fb.db,"visits",k+"_"+pid),{date:k,personId:pid});
+      if(!uid){banner("Connexion impossible : active l’authentification anonyme dans Firebase.");return}
+      if(found.length){
+        const mine=found.filter(v=>v.uid===uid);
+        if(!mine.length){banner("Cette visite a été cochée par "+(found[0].by||"quelqu’un d’autre")+" : seule cette personne peut l’annuler.");return}
+        await Promise.all(mine.map(v=>fb.deleteDoc(fb.doc(fb.db,"visits",v.id))));
+      }else{
+        if(!myName){banner("Écris d’abord ton prénom dans la case, au-dessus des noms.");document.getElementById("myname").focus();return}
+        await fb.setDoc(fb.doc(fb.db,"visits",k+"_"+pid),{date:k,personId:pid,uid:uid,by:myName});
+      }
     }else{
       if(found.length)visits=visits.filter(v=>!(v.date===k&&v.personId===pid));
-      else visits.push({id:k+"_"+pid,date:k,personId:pid});
+      else{
+        if(!myName){banner("Écris d’abord ton prénom dans la case, au-dessus des noms.");document.getElementById("myname").focus();return}
+        visits.push({id:k+"_"+pid,date:k,personId:pid,by:myName});
+      }
       localSave();render();
     }
   }catch(_){fail()}
@@ -104,6 +117,12 @@ $("next").onclick=()=>{view=new Date(view.getFullYear(),view.getMonth()+1,1);sel
 
 async function init(){
   render();
+  const nm=el("input");nm.id="myname";nm.placeholder="Ton prénom";nm.maxLength=30;nm.setAttribute("aria-label","Ton prénom");
+  nm.style.cssText="width:100%;padding:10px 12px;margin:8px 0;border-radius:12px;border:1px solid var(--line);background:var(--bg);color:var(--ink);font:inherit";
+  try{nm.value=localStorage.getItem("prenom")||""}catch(e){}
+  myName=nm.value.trim();
+  nm.oninput=()=>{myName=nm.value.trim();try{localStorage.setItem("prenom",myName)}catch(e){}};
+  $("pbs").before(nm);
   if(FIREBASE_CONFIG.apiKey==="COLLE_ICI"){
     try{visits=JSON.parse(localStorage.getItem("visites")||"[]")}catch(e){visits=[]}
     banner("Mode test : pour l’instant, les visites restent sur cet appareil. Colle la configuration Firebase pour les partager.");
@@ -111,12 +130,14 @@ async function init(){
   }
   try{
     const B="https://www.gstatic.com/firebasejs/10.12.2/";
-    const [app,st]=await Promise.all([import(B+"firebase-app.js"),import(B+"firebase-firestore.js")]);
+    const [app,st,au]=await Promise.all([import(B+"firebase-app.js"),import(B+"firebase-firestore.js"),import(B+"firebase-auth.js")]);
     const a=app.initializeApp(FIREBASE_CONFIG);
+    try{const cred=await au.signInAnonymously(au.getAuth(a));uid=cred.user.uid}
+    catch(e){uid=null;banner("Connexion anonyme impossible : active-la dans Firebase (Authentication).")}
     fb={db:st.getFirestore(a,"default"),doc:st.doc,setDoc:st.setDoc,deleteDoc:st.deleteDoc};
     online=true;
     st.onSnapshot(st.collection(fb.db,"visits"),
-      s=>{banner("");visits=s.docs.map(d=>Object.assign({id:d.id},d.data()));render()},
+      s=>{if(uid)banner("");visits=s.docs.map(d=>Object.assign({id:d.id},d.data()));render()},
       ()=>banner("Impossible de lire les visites. Vérifie les règles Firestore."));
   }catch(e){banner("Connexion impossible. Vérifie ta connexion internet.")}
 }
