@@ -113,7 +113,7 @@ async function init(){
     const B="https://www.gstatic.com/firebasejs/10.12.2/";
     const [app,st]=await Promise.all([import(B+"firebase-app.js"),import(B+"firebase-firestore.js")]);
     const a=app.initializeApp(FIREBASE_CONFIG);
-    fb={db:st.getFirestore(a),doc:st.doc,setDoc:st.setDoc,deleteDoc:st.deleteDoc};
+    fb={db:st.getFirestore(a,"default"),doc:st.doc,setDoc:st.setDoc,deleteDoc:st.deleteDoc};
     online=true;
     st.onSnapshot(st.collection(fb.db,"visits"),
       s=>{banner("");visits=s.docs.map(d=>Object.assign({id:d.id},d.data()));render()},
