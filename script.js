@@ -13,19 +13,20 @@ const FIREBASE_CONFIG={
    - id    : un identifiant unique, SANS espace ni accent. Ne le change jamais après coup.
    - name  : le nom affiché.
    - color : la couleur (code hexadécimal, texte blanc lisible dessus).
+   - hours : (facultatif) les heures de visite, par exemple hours:"10h30-12h". Affiché aux gens.
    Pour ajouter quelqu’un : copie une ligne, change l’id, le nom et la couleur. */
 const PEOPLE=[
-  {id:"personne1",name:"Yvette & Célestin",color:"#e4572e"},
+  {id:"personne1",name:"Yvette & Célestin",color:"#e4572e",hours:"14h-16h"},
   {id:"personne2",name:"Lucia",color:"#2f6fed"},
   {id:"personne3",name:"Edouard & Pina",color:"#16a34a"},
-  {id:"personne4",name:"Rose",color:"#c026d3"},
-  {id:"personne5",name:"Mario & Pina: 10h30-12h",color:"#d97706"},
-  {id:"personne6",name:"Claude & Jeanou",color:"#0891b2"},
-  {id:"personne7",name:"Dominique",color:"#78350f"},
+  {id:"personne4",name:"Rose",color:"#c026d3",hours:"13h-16h},
+  {id:"personne5",name:"Mario & Pina",color:"#d97706",hours:"10h30-12h"},
+  {id:"personne6",name:"Claude & Jeanou",color:"#0891b2",hours:"10h-17h"},
+  {id:"personne7",name:"Dominique",color:"#78350f",hours:"14h-16h"},
   {id:"personne8",name:"Jean-Claude",color:"#475569"},
   {id:"personne9",name:"Steve",color:"#4d7c0f"},
   {id:"personne10",name:"Antoinette",color:"#4338ca"},
-  {id:"personne11",name:"Nino",color:"#881337"},
+  {id:"personne11",name:"Nino",color:"#881337",hours:"14h-17h sauf le mardi (⚠️Contacter Melina avant)},
   {id:"personne12",name:"Nicole",color:"#ec4899"},
   {id:"personne13",name:"Rosa Fede",color:"#facc15"}
 ];
@@ -50,7 +51,7 @@ function render(){
   const chips=$("chips");chips.replaceChildren();
   PEOPLE.forEach(p=>{
     const c=el("div","chip");c.style.background=p.color;
-    c.append(el("span",null,p.name));if(mv.some(v=>v.personId===p.id))c.append(el("small",null,"✓ visité"));
+    c.append(el("span",null,p.name));if(p.hours)c.append(el("small",null,"🕒 "+p.hours));if(mv.some(v=>v.personId===p.id))c.append(el("small",null,"✓ visité"));
     chips.append(c);
   });
   const g=$("grid");g.replaceChildren();
