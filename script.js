@@ -27,7 +27,7 @@ const PEOPLE=[
   {id:"personne10",name:"Antoinette",color:"#4338ca"},
   {id:"personne11",name:"Nino",color:"#881337"},
   {id:"personne12",name:"Nicole",color:"#ec4899"},
-  {id:"personne12",name:"Rosa Fede",color:"#facc15"}
+  {id:"personne13",name:"Rosa Fede",color:"#facc15"}
 ];
 /* ================================================================================ */
 
