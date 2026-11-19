@@ -102,7 +102,6 @@ function renderSheet(){
     const on=has(sel,p.id),other=on&&online&&!visits.some(v=>v.date===sel&&v.personId===p.id&&v.uid===uid);
     const who=visits.filter(v=>v.date===sel&&v.personId===p.id).map(v=>v.by).filter(Boolean).join(", ");
     const b=el("button","pb"+(on?" on":""),(on?"✓ ":"")+p.name+(on&&who?" · "+who:"")+(other&&!who?" (coché par un autre)":""));
-    if(p.hours){const h=el("small",null," 🕒 "+p.hours);h.style.fontWeight="400";b.append(h)}
     b.style.borderColor=p.color;if(on)b.style.background=p.color;
     if(other){b.disabled=true;b.style.opacity=".6"}
     b.setAttribute("aria-pressed",on);
