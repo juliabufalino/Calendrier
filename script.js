@@ -18,7 +18,7 @@ const FIREBASE_CONFIG={
 const PEOPLE=[
   {id:"personne1",name:"Yvette & Célestin",color:"#e4572e",hours:"14h-16h"},
   {id:"personne2",name:"Lucia",color:"#2f6fed"},
-  {id:"personne3",name:"Edouard & Pina",color:"#16a34a"},
+  {id:"personne3",name:"Edouard & Pina",color:"#16a34a",hours:"15h30-18h"},
   {id:"personne4",name:"Rose",color:"#c026d3",hours:"13h-16h"},
   {id:"personne5",name:"Mario & Pina",color:"#d97706",hours:"10h30-12h"},
   {id:"personne6",name:"Claude & Jeanou",color:"#0891b2",hours:"10h-17h"},
